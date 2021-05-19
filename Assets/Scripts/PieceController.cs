@@ -17,15 +17,20 @@ public class PieceController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         //Caída de la pieza
         if(timeToNextFalling>= fallingTime)
         {
-            this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
-                                                             gameObject.transform.position.y - 1, 
-                                                             gameObject.transform.position.z);
+            if(IsValidPosition(new Vector2(0, -1)))
+            {
+                this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
+                                                                    gameObject.transform.position.y - 1, 
+                                                                    gameObject.transform.position.z);
+            }
             timeToNextFalling = 0f;
         }
         timeToNextFalling += Time.deltaTime;
+
     
         //Movimiento de la pieza hacia la izquierda
         if(Input.GetKeyDown(KeyCode.LeftArrow))
@@ -37,17 +42,16 @@ public class PieceController : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.RightArrow))
         {
             MovePiece(1);
+
         }
         
         //Rotamos la pieza 90 grados
         if(Input.GetKeyDown(KeyCode.LeftControl))
         {
-            Quaternion auxQuaternion = new Quaternion(0, 0,0, -90);
-            //this.gameObject.transform.rotation = new Quaternion(0, 0,0, -90);
+            //Que puede entrar en un borde despues de rotar
+            //Quaternion auxQuaternion = new Quaternion(0, 0,0, -90);
             this.transform.Rotate(new Vector3(0,0,-90));
-            Debug.Log(this.gameObject.transform.rotation.z);
         }
-
     }
 
     /// <summary>
@@ -57,8 +61,30 @@ public class PieceController : MonoBehaviour
     /// 1 -> Derecha
     /// -1 -> Izquierda</param>
     private void MovePiece(int direction){
-        this.gameObject.transform.position = new Vector3(gameObject.transform.position.x + direction, 
-                                                             gameObject.transform.position.y, 
-                                                             gameObject.transform.position.z);
+        if(IsValidPosition(new Vector2(direction, 0))){
+            this.gameObject.transform.position = new Vector3(gameObject.transform.position.x + direction, 
+                                                                gameObject.transform.position.y, 
+                                                                gameObject.transform.position.z);
+        }
+    }
+
+    /// <summary>
+    /// Comprueba si la posición a la que se va a mover la pieza es válida
+    /// </summary>
+    /// <param name="nextMove">Vector2 que indica hacia donde se moverá la pieza</param>
+    /// <returns>Devuelve true si la pieza puede moverse y false si no puede moverse</returns>
+    private bool IsValidPosition(Vector2 nextMove)
+    {
+
+        foreach (Transform block in this.transform)
+        {
+            Vector2 nextPosition = (GridController.RoundVector(block.position) + nextMove);
+
+            if(!GridController.IsInPlayfield(nextPosition))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
