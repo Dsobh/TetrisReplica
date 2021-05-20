@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fallingTime: 1
+  _spawnManager: {fileID: 0}
 --- !u!1 &3798638580314346546
 GameObject:
   m_ObjectHideFlags: 0

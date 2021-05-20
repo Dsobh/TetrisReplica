@@ -372,3 +372,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fallingTime: 1
+  _spawnManager: {fileID: 0}

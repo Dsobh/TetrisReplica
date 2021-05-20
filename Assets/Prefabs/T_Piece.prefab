@@ -291,6 +291,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fallingTime: 1
+  _spawnManager: {fileID: 0}
 --- !u!1 &7684668415982966225
 GameObject:
   m_ObjectHideFlags: 0
