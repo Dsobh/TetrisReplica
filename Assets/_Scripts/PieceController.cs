@@ -105,23 +105,33 @@ public class PieceController : MonoBehaviour
     private void UpdateGrid()
     {
         //Borrar la pieza actual del grid
-        for(int i = 0; i < GridController.getHeight(); i++)
+        for(int i = 0; i < GridController.getHeight(); i++) //Recorremos las filas
         {
-            for (int j = 0; j < GridController.getWidth(); j++)
+            for (int j = 0; j < GridController.getWidth(); j++) //Recorremos las columnas
             {
-                GameObject cell = GridController.getCell(i, j);
-                if(cell != null){
-                    if(cell.transform.parent == this){
-                        GridController.setCell(i, j, null);
+                if(i <= GridController.getMaxHeight()) //Comprobamos que estamos en el PlayField y no en la zona del spawn
+                {
+                    GameObject cell = GridController.getCell(i, j);
+                    if(cell != null){
+                        if(cell.transform.parent == this){
+                            //Tenemos que ajustar la celda porque en la matriz el 0,0 empieza arriba y en el escenario empieza abajo
+                            GridController.setCell(GridController.getMaxHeight() - i, j, null);
+                        }
                     }
                 }
             }
         }
+
         //Actualizar grid
         foreach (Transform block in this.transform)
         {
-            Debug.Log(block.transform.position.x + ", " + block.transform.position.y);
-            GridController.setCell((int)block.transform.position.x, (int)block.transform.position.y, block.gameObject);
+            if((int)block.transform.position.y <= GridController.getMaxHeight()) //Comprobamos que estamos en el PlayField y no en la zona del spawn
+            {
+                Debug.Log((int)block.transform.position.x + ", " + (int)block.transform.position.y);
+                //Aquí el ajuste no es necesario porque siempre trabajamos con las coordenadas del escenario
+                GridController.setCell((int)block.transform.position.y, (int)block.transform.position.x, block.gameObject);
+                //La x son las columnas, las y son las filas
+            }
         }
     }
 }

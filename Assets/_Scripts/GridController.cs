@@ -4,8 +4,8 @@ using UnityEngine;
 
 public static class GridController
 {
-   
-   private static int height = 20;
+   private const int MAX_HEIGHT = 20; //Máximo número de filas posibles
+   private static int height = 24;
    private static int width = 10;
    private static GameObject[,]  blocks = new GameObject[23, 10];
 
@@ -71,6 +71,16 @@ public static class GridController
    public static void setCell(int row, int column, GameObject value)
    {
        blocks[row, column] = value;
+   }
+
+    
+    /// <summary>
+    /// Método get de la constante MAX_HEIGHT
+    /// </summary>
+    /// <returns>El número máximo de filas</returns>
+   public static int getMaxHeight()
+   {
+       return MAX_HEIGHT;
    }
 
 
