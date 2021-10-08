@@ -23,29 +23,10 @@ public class PieceController : MonoBehaviour
 
         if(canMove)
         {
-            //Caída de la pieza
-            if(timeToNextFalling>= fallingTime)
-            {
-                if(IsValidPosition(new Vector2(0, -1)))
-                {
-                    this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
-                                                                        gameObject.transform.position.y - 1, 
-                                                                        gameObject.transform.position.z);
-                }else{
-                    canMove = false;
-                    Debug.Log("Estoy en el else del pieceController");
-                    _spawnManager.SpawnPiece();
-                }
-                timeToNextFalling = 0f;
-            }
-            timeToNextFalling += Time.deltaTime;
-
-        
             //Movimiento de la pieza hacia la izquierda
             if(Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 MovePiece(-1);
-                UpdateGrid();
             }
 
             //Movimiento de la pieza hacia la derecha
@@ -62,6 +43,26 @@ public class PieceController : MonoBehaviour
                 //Quaternion auxQuaternion = new Quaternion(0, 0,0, -90);
                 this.transform.Rotate(new Vector3(0,0,-90));
             }
+
+            //Caída de la pieza
+            if(Input.GetKeyDown(KeyCode.DownArrow) || timeToNextFalling>= fallingTime)
+            {
+                this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
+                                                                        gameObject.transform.position.y - 1, 
+                                                                        gameObject.transform.position.z);
+                if(IsValidPosition())
+                {
+                    UpdateGrid();
+                }else{  
+                    this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
+                                                                        gameObject.transform.position.y + 1, 
+                                                                        gameObject.transform.position.z);
+                    canMove = false;
+                    _spawnManager.SpawnPiece();
+                }
+                timeToNextFalling = 0f;
+            }
+            timeToNextFalling += Time.deltaTime;
         }
     }
 
@@ -72,10 +73,16 @@ public class PieceController : MonoBehaviour
     /// 1 -> Derecha
     /// -1 -> Izquierda</param>
     private void MovePiece(int direction){
-        if(IsValidPosition(new Vector2(direction, 0))){
-            this.gameObject.transform.position = new Vector3(gameObject.transform.position.x + direction, 
+        this.gameObject.transform.position = new Vector3(gameObject.transform.position.x + direction, 
                                                                 gameObject.transform.position.y, 
                                                                 gameObject.transform.position.z);
+        if(!IsValidPosition()){
+            this.gameObject.transform.position = new Vector3(gameObject.transform.position.x - direction,
+                                                                gameObject.transform.position.y, 
+                                                                gameObject.transform.position.z);
+        }else
+        {
+            UpdateGrid();
         }
     }
 
@@ -84,14 +91,19 @@ public class PieceController : MonoBehaviour
     /// </summary>
     /// <param name="nextMove">Vector2 que indica hacia donde se moverá la pieza</param>
     /// <returns>Devuelve true si la pieza puede moverse y false si no puede moverse</returns>
-    private bool IsValidPosition(Vector2 nextMove)
+    private bool IsValidPosition()
     {
-
         foreach (Transform block in this.transform)
         {
-            Vector2 nextPosition = (GridController.RoundVector(block.position) + nextMove);
+            Vector2 position = (GridController.RoundVector(block.position));
 
-            if(!GridController.IsInPlayfield(nextPosition))
+            if(!GridController.IsInPlayfield(position))
+            {
+                return false;
+            }
+
+            Transform possibleBlock = GridController.blocks[(int)position.x, (int)position.y];
+            if(possibleBlock != null && possibleBlock.transform.parent != this.transform)
             {
                 return false;
             }
@@ -105,33 +117,27 @@ public class PieceController : MonoBehaviour
     private void UpdateGrid()
     {
         //Borrar la pieza actual del grid
-        for(int i = 0; i < GridController.getHeight(); i++) //Recorremos las filas
+        for(int y = 0; y < GridController.getHeight(); y++) //Recorremos las filas
         {
-            for (int j = 0; j < GridController.getWidth(); j++) //Recorremos las columnas
+            for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
             {
-                if(i <= GridController.getMaxHeight()) //Comprobamos que estamos en el PlayField y no en la zona del spawn
+                if(GridController.blocks[x,y] != null)
                 {
-                    GameObject cell = GridController.getCell(i, j);
-                    if(cell != null){
-                        if(cell.transform.parent == this){
-                            //Tenemos que ajustar la celda porque en la matriz el 0,0 empieza arriba y en el escenario empieza abajo
-                            GridController.setCell(GridController.getMaxHeight() - i, j, null);
-                        }
+                    if(GridController.blocks[x,y].parent == this.transform)
+                    {
+                        GridController.blocks[x, y] = null;
                     }
-                }
+                }  
             }
         }
 
         //Actualizar grid
         foreach (Transform block in this.transform)
         {
-            if((int)block.transform.position.y <= GridController.getMaxHeight()) //Comprobamos que estamos en el PlayField y no en la zona del spawn
-            {
-                Debug.Log((int)block.transform.position.x + ", " + (int)block.transform.position.y);
-                //Aquí el ajuste no es necesario porque siempre trabajamos con las coordenadas del escenario
-                GridController.setCell((int)block.transform.position.y, (int)block.transform.position.x, block.gameObject);
-                //La x son las columnas, las y son las filas
-            }
+        //Aquí el ajuste no es necesario porque siempre trabajamos con las coordenadas del escenario
+        Vector2 position = GridController.RoundVector(block.position);
+        GridController.blocks[(int)position.x, (int)position.y] = block;
+        //La x son las columnas, las y son las filas
         }
     }
 }

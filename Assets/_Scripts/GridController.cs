@@ -7,7 +7,7 @@ public static class GridController
    private const int MAX_HEIGHT = 20; //Máximo número de filas posibles
    private static int height = 24;
    private static int width = 10;
-   private static GameObject[,]  blocks = new GameObject[23, 10];
+   public static Transform[,]  blocks = new Transform[width, height];
 
     /// <summary>
     /// Redondea un vector2
@@ -29,8 +29,10 @@ public static class GridController
        if(position.x >= width || position.x < 0 || position.y < 0)
        {
            return false;
+       }else
+       {
+           return true;
        }
-       return true;
    }
    
    /// <summary>
@@ -49,28 +51,6 @@ public static class GridController
    public static int getWidth()
    {
        return width;
-   }
-
-    /// <summary>
-    /// Método get de una celda del grid en específico
-    /// </summary>
-    /// <param name="row">Fila del grid</param>
-    /// <param name="column">Columna del grid</param>
-    /// <returns>GameObject que ocupa la fila|columna</returns>
-   public static GameObject getCell(int row, int column)
-   {
-       return blocks[row, column];
-   }
-
-    /// <summary>
-    /// Método set de la celda.
-    /// </summary>
-    /// <param name="row">Fila del grid</param>
-    /// <param name="column">Columna del grid</param>
-    /// <param name="value">Valor que asignamos a la celda</param>
-   public static void setCell(int row, int column, GameObject value)
-   {
-       blocks[row, column] = value;
    }
 
     
