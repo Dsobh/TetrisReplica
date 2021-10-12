@@ -57,6 +57,7 @@ public class PieceController : MonoBehaviour
                     this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
                                                                         gameObject.transform.position.y + 1, 
                                                                         gameObject.transform.position.z);
+                    CheckGameOver();
                     canMove = false;
                     _spawnManager.SpawnPiece();
                     DeleteFullRows();
@@ -161,7 +162,6 @@ public class PieceController : MonoBehaviour
         {
             if(GridController.blocks[x,row] == null)
             {
-                Debug.Log(row);
                 return false;
             }
         }
@@ -194,6 +194,24 @@ public class PieceController : MonoBehaviour
                 GridController.blocks[x, row-1] = GridController.blocks[x, row];
                 GridController.blocks[x, row-1].position += new Vector3(0, -1, 0);
                 GridController.blocks[x, row] = null;
+            }
+        }
+    }
+
+    private void CheckGameOver()
+    {
+        if(!IsValidPosition())
+        {
+            foreach (Transform block in this.transform)
+            {
+                Vector2 position = (GridController.RoundVector(block.position));
+
+                if(block.position.y > 19)
+                {
+                    Debug.Log("Game Over");
+                    Time.timeScale = 0;
+                    Destroy(this.gameObject);
+                }
             }
         }
     }
