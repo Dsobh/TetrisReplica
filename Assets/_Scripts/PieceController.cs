@@ -59,6 +59,7 @@ public class PieceController : MonoBehaviour
                                                                         gameObject.transform.position.z);
                     canMove = false;
                     _spawnManager.SpawnPiece();
+                    DeleteFullRows();
                 }
                 timeToNextFalling = 0f;
             }
@@ -140,4 +141,61 @@ public class PieceController : MonoBehaviour
         //La x son las columnas, las y son las filas
         }
     }
+
+    private void DeleteFullRows()
+    {
+        for(int y = 0; y < GridController.getHeight(); y++) //Recorremos las filas
+        {
+            if(IsRowFull(y))
+            {
+                DeleteRow(y);
+                DecreaseSuperiorRows(y + 1);
+                y--;
+            }
+        }
+    }
+
+    private bool IsRowFull(int row)
+    {
+        for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
+        {
+            if(GridController.blocks[x,row] == null)
+            {
+                Debug.Log(row);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void DeleteRow(int row)
+    {
+        for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
+        {
+            Destroy(GridController.blocks[x,row].gameObject);
+            GridController.blocks[x,row] = null;
+        }
+    }
+
+    private void DecreaseSuperiorRows(int row)
+    {
+        for(int y = row; y < GridController.getHeight(); y++) //Recorremos las filas
+        {
+            DecreaseRow(y);
+        }
+    }
+
+    private void DecreaseRow(int row)
+    {
+        for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
+        {
+            if(GridController.blocks[x, row] != null)
+            {
+                GridController.blocks[x, row-1] = GridController.blocks[x, row];
+                GridController.blocks[x, row-1].position += new Vector3(0, -1, 0);
+                GridController.blocks[x, row] = null;
+            }
+        }
+    }
+    
 }
