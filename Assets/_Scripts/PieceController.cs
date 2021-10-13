@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 using UnityEngine;
+
 
 public class PieceController : MonoBehaviour
 {
@@ -10,57 +12,74 @@ public class PieceController : MonoBehaviour
     public SpawnManager _spawnManager;
     private bool canMove = true;
 
+    private ScoreManager _scoreManager;
+
+    public delegate void _OnLevelChange(int level);
+    public static event _OnLevelChange OnLevelChange;
+    public UnityEvent OnChange;
+
+    public delegate void _OnNumberOfLinesChange(int linesNumber, int score);
+    public static event _OnNumberOfLinesChange OnNumberOfLinesChange;
+    public UnityEvent OnLineChange;
+
+    public delegate void _OnGameOverTrigger();
+    public static event _OnGameOverTrigger OnGameOverTrigger;
+    public UnityEvent OnGameOver;
+
     // Start is called before the first frame update
     void Start()
     {
         timeToNextFalling = 0f;
         _spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
+        _scoreManager = GameObject.Find("ScoreManager").GetComponent<ScoreManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-
-        if(canMove)
+        if (canMove)
         {
             //Movimiento de la pieza hacia la izquierda
-            if(Input.GetKeyDown(KeyCode.LeftArrow))
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 MovePiece(-1);
             }
 
             //Movimiento de la pieza hacia la derecha
-            if(Input.GetKeyDown(KeyCode.RightArrow))
+            if (Input.GetKeyDown(KeyCode.RightArrow))
             {
                 MovePiece(1);
 
             }
-            
+
             //Rotamos la pieza 90 grados
-            if(Input.GetKeyDown(KeyCode.LeftControl))
+            if (Input.GetKeyDown(KeyCode.LeftControl))
             {
                 //Que puede entrar en un borde despues de rotar
                 //Quaternion auxQuaternion = new Quaternion(0, 0,0, -90);
-                this.transform.Rotate(new Vector3(0,0,-90));
+                this.transform.Rotate(new Vector3(0, 0, -90));
             }
 
             //Caída de la pieza
-            if(Input.GetKeyDown(KeyCode.DownArrow) || timeToNextFalling>= fallingTime)
+            if (Input.GetKeyDown(KeyCode.DownArrow) || timeToNextFalling >= fallingTime)
             {
-                this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
-                                                                        gameObject.transform.position.y - 1, 
+                this.gameObject.transform.position = new Vector3(gameObject.transform.position.x,
+                                                                        gameObject.transform.position.y - 1,
                                                                         gameObject.transform.position.z);
-                if(IsValidPosition())
+                if (IsValidPosition())
                 {
                     UpdateGrid();
-                }else{  
-                    this.gameObject.transform.position = new Vector3(gameObject.transform.position.x, 
-                                                                        gameObject.transform.position.y + 1, 
-                                                                        gameObject.transform.position.z);
+                }
+                else
+                {
                     CheckGameOver();
+                    this.gameObject.transform.position = new Vector3(gameObject.transform.position.x,
+                                                                        gameObject.transform.position.y + 1,
+                                                                        gameObject.transform.position.z);
                     canMove = false;
                     _spawnManager.SpawnPiece();
                     DeleteFullRows();
+                    UpdateLevel();
                 }
                 timeToNextFalling = 0f;
             }
@@ -74,15 +93,18 @@ public class PieceController : MonoBehaviour
     /// <param name="direction">Indica la dirección hacia la que se tiene que mover la pieza.
     /// 1 -> Derecha
     /// -1 -> Izquierda</param>
-    private void MovePiece(int direction){
-        this.gameObject.transform.position = new Vector3(gameObject.transform.position.x + direction, 
-                                                                gameObject.transform.position.y, 
+    private void MovePiece(int direction)
+    {
+        this.gameObject.transform.position = new Vector3(gameObject.transform.position.x + direction,
+                                                                gameObject.transform.position.y,
                                                                 gameObject.transform.position.z);
-        if(!IsValidPosition()){
+        if (!IsValidPosition())
+        {
             this.gameObject.transform.position = new Vector3(gameObject.transform.position.x - direction,
-                                                                gameObject.transform.position.y, 
+                                                                gameObject.transform.position.y,
                                                                 gameObject.transform.position.z);
-        }else
+        }
+        else
         {
             UpdateGrid();
         }
@@ -99,13 +121,13 @@ public class PieceController : MonoBehaviour
         {
             Vector2 position = (GridController.RoundVector(block.position));
 
-            if(!GridController.IsInPlayfield(position))
+            if (!GridController.IsInPlayfield(position))
             {
                 return false;
             }
 
             Transform possibleBlock = GridController.blocks[(int)position.x, (int)position.y];
-            if(possibleBlock != null && possibleBlock.transform.parent != this.transform)
+            if (possibleBlock != null && possibleBlock.transform.parent != this.transform)
             {
                 return false;
             }
@@ -119,48 +141,56 @@ public class PieceController : MonoBehaviour
     private void UpdateGrid()
     {
         //Borrar la pieza actual del grid
-        for(int y = 0; y < GridController.getHeight(); y++) //Recorremos las filas
+        for (int y = 0; y < GridController.getHeight(); y++) //Recorremos las filas
         {
             for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
             {
-                if(GridController.blocks[x,y] != null)
+                if (GridController.blocks[x, y] != null)
                 {
-                    if(GridController.blocks[x,y].parent == this.transform)
+                    if (GridController.blocks[x, y].parent == this.transform)
                     {
                         GridController.blocks[x, y] = null;
                     }
-                }  
+                }
             }
         }
 
         //Actualizar grid
         foreach (Transform block in this.transform)
         {
-        //Aquí el ajuste no es necesario porque siempre trabajamos con las coordenadas del escenario
-        Vector2 position = GridController.RoundVector(block.position);
-        GridController.blocks[(int)position.x, (int)position.y] = block;
-        //La x son las columnas, las y son las filas
+            //Aquí el ajuste no es necesario porque siempre trabajamos con las coordenadas del escenario
+            Vector2 position = GridController.RoundVector(block.position);
+            GridController.blocks[(int)position.x, (int)position.y] = block;
+            //La x son las columnas, las y son las filas
         }
     }
 
     private void DeleteFullRows()
     {
-        for(int y = 0; y < GridController.getHeight(); y++) //Recorremos las filas
+        for (int y = 0; y < GridController.getHeight(); y++) //Recorremos las filas
         {
-            if(IsRowFull(y))
+            if (IsRowFull(y))
             {
                 DeleteRow(y);
+                _scoreManager.IncreaseCombo();
                 DecreaseSuperiorRows(y + 1);
                 y--;
             }
         }
+        _scoreManager.calcCombo();
+        OnLineChange.Invoke();
+        if (OnNumberOfLinesChange != null)
+        {
+            OnNumberOfLinesChange(_scoreManager.linesCounter, _scoreManager.score);
+        }
+        _scoreManager.ResetCombo();
     }
 
     private bool IsRowFull(int row)
     {
         for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
         {
-            if(GridController.blocks[x,row] == null)
+            if (GridController.blocks[x, row] == null)
             {
                 return false;
             }
@@ -172,14 +202,15 @@ public class PieceController : MonoBehaviour
     {
         for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
         {
-            Destroy(GridController.blocks[x,row].gameObject);
-            GridController.blocks[x,row] = null;
+            Destroy(GridController.blocks[x, row].gameObject);
+            GridController.blocks[x, row] = null;
         }
+        _scoreManager.IncreaseLine();
     }
 
     private void DecreaseSuperiorRows(int row)
     {
-        for(int y = row; y < GridController.getHeight(); y++) //Recorremos las filas
+        for (int y = row; y < GridController.getHeight(); y++) //Recorremos las filas
         {
             DecreaseRow(y);
         }
@@ -189,10 +220,10 @@ public class PieceController : MonoBehaviour
     {
         for (int x = 0; x < GridController.getWidth(); x++) //Recorremos las columnas
         {
-            if(GridController.blocks[x, row] != null)
+            if (GridController.blocks[x, row] != null)
             {
-                GridController.blocks[x, row-1] = GridController.blocks[x, row];
-                GridController.blocks[x, row-1].position += new Vector3(0, -1, 0);
+                GridController.blocks[x, row - 1] = GridController.blocks[x, row];
+                GridController.blocks[x, row - 1].position += new Vector3(0, -1, 0);
                 GridController.blocks[x, row] = null;
             }
         }
@@ -200,20 +231,31 @@ public class PieceController : MonoBehaviour
 
     private void CheckGameOver()
     {
-        if(!IsValidPosition())
+        if (!IsValidPosition() && this.transform.position.y >= 20)
         {
-            foreach (Transform block in this.transform)
+            Debug.Log("Game Over");
+            Time.timeScale = 0;
+            Destroy(this.gameObject);
+            OnGameOver.Invoke();
+            if (OnGameOverTrigger != null)
             {
-                Vector2 position = (GridController.RoundVector(block.position));
-
-                if(block.position.y > 19)
-                {
-                    Debug.Log("Game Over");
-                    Time.timeScale = 0;
-                    Destroy(this.gameObject);
-                }
+                OnGameOverTrigger();
             }
         }
     }
-    
+
+    private void UpdateLevel()
+    {
+
+        if (_scoreManager.linesCounter >= _scoreManager.levelCounter * 10)
+        {
+            OnChange.Invoke();
+            _scoreManager.IncreaseLevel();
+            if (OnLevelChange != null)
+            {
+                OnLevelChange(_scoreManager.levelCounter);
+            }
+        }
+    }
+
 }
