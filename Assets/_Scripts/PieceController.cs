@@ -3,9 +3,23 @@ using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine;
 
+enum Estate {
+    O = 0,
+    R = 90,
+    L = -90,
+    D = 180};
 
 public class PieceController : MonoBehaviour
 {
+    [SerializeField]
+    private string identity;
+
+    private Estate actualEstate = Estate.O;
+    private Estate nextState = Estate.O;
+
+    private static Vector2[,] wallKickDataForRest;
+    private static Vector2[,] wallKickDataForI;
+
     [SerializeField]
     private float fallingTime = 1f;
     private float timeToNextFalling;
@@ -32,6 +46,8 @@ public class PieceController : MonoBehaviour
         timeToNextFalling = 0f;
         _spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
         _scoreManager = GameObject.Find("ScoreManager").GetComponent<ScoreManager>();
+        wallKickDataForRest = WallKickData.returnRestData();
+        wallKickDataForI = WallKickData.returnIData();
     }
 
     // Update is called once per frame
@@ -53,11 +69,38 @@ public class PieceController : MonoBehaviour
             }
 
             //Rotamos la pieza 90 grados
-            if (Input.GetKeyDown(KeyCode.LeftControl))
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !identity.Equals("O"))
             {
-                //Que puede entrar en un borde despues de rotar
-                //Quaternion auxQuaternion = new Quaternion(0, 0,0, -90);
+                bool rotationResult = true;
+                //Actualizamos el estado de rotación
+                nextState = nextState -90;
+                if(Mathf.Abs((float)nextState) == 180f)
+                {
+                    nextState = Estate.D;
+                }
+
+                //Rotamos
                 this.transform.Rotate(new Vector3(0, 0, -90));
+
+
+                Debug.Log(actualEstate + "-> " + nextState);
+                //Aplicamos Wallkick
+                if(identity == "I")
+                {
+                    rotationResult = TryWallKick(wallKickDataForI);
+                }else
+                {
+                    rotationResult = TryWallKick(wallKickDataForRest);
+                }
+
+                //Si no hay un wallkick satisfactorio, no rotamos
+                if(!rotationResult)
+                {
+                    this.transform.Rotate(new Vector3(0, 0, 90));
+                }else
+                {
+                    actualEstate = nextState;
+                }
             }
 
             //Caída de la pieza
@@ -256,6 +299,66 @@ public class PieceController : MonoBehaviour
                 OnLevelChange(_scoreManager.levelCounter);
             }
         }
+    }
+
+    private bool TryWallKick(Vector2[,] data)
+    {
+        int dataRow = 0;
+
+        //Comprobamos que fila de rotaciones debemos probar
+        if(actualEstate == Estate.O)
+        {
+            if(nextState == Estate.R)
+            {
+                dataRow = 0; //Primera fila
+            }else
+            {
+                dataRow = 7;
+            }
+        }else if(actualEstate == Estate.R)
+        {
+            if(nextState == Estate.O)
+            {
+                dataRow = 1; //Primera fila
+            }else
+            {
+                dataRow = 2;
+            }
+        }else if(actualEstate == Estate.L)
+        {
+            if(nextState == Estate.O)
+            {
+                dataRow = 6; //Primera fila
+            }else
+            {
+                dataRow = 5;
+            }
+        }else
+        {
+            if(nextState == Estate.R)
+            {
+                dataRow = 3; //Primera fila
+            }else
+            {
+                dataRow = 4;
+            }
+        }
+
+        for(int i=0; i<5; i++)
+        {
+            Vector2 movement = data[dataRow, i];
+            this.transform.Rotate(new Vector3(movement.x, movement.y, 0));
+            if(!IsValidPosition())
+            {
+                Debug.Log(movement.x + " " + movement.y);
+                this.transform.Rotate(new Vector3(-movement.x, -movement.y, 0));
+            }else
+            {
+                return true;
+            }
+        }
+        return false;
+
     }
 
 }

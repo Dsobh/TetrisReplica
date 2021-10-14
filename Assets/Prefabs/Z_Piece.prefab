@@ -47,8 +47,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98469995a7f613e468b79df300e4c1a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  identity: Z
   fallingTime: 1
   _spawnManager: {fileID: 0}
+  OnChange:
+    m_PersistentCalls:
+      m_Calls: []
+  OnLineChange:
+    m_PersistentCalls:
+      m_Calls: []
+  OnGameOver:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &3798638580314346546
 GameObject:
   m_ObjectHideFlags: 0
