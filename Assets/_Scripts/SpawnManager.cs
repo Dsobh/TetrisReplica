@@ -9,6 +9,8 @@ public class SpawnManager : MonoBehaviour
     [SerializeField]
     private Vector3[] piecesOffset;
     [SerializeField]
+    private ArrayList bag = new ArrayList();
+    [SerializeField]
     private Transform UIPosition;
     private int nextPieceIndex;
     private GameObject newPieceAux;
@@ -17,6 +19,7 @@ public class SpawnManager : MonoBehaviour
     void Start() {
         nextPieceIndex = Random.Range(0, 6);
         SpawnPiece();
+        FillBag();
     }
 
     /// <summary>
@@ -41,5 +44,27 @@ public class SpawnManager : MonoBehaviour
         newPiece = Instantiate(newPieceAux, (UIPosition.position  + piecesOffset[nextPieceIndex]), newPieceAux.transform.rotation);
         newPiece.GetComponent<PieceController>().enabled = false;
         newPiece.SetActive(true);
+    }
+
+    private void FillBag()
+    {
+        GameObject piece;
+        bool pieceExist = false;
+      /* while(bag.Count < 7)
+        {
+            piece = pieces[Random.Range(0,6)];
+            foreach (GameObject p in bag)
+            {
+                if(piece.name == p.name)
+                {
+                    pieceExist = true;
+                }
+            }
+            Debug.Log(piece.name);
+            if(pieceExist == false)
+            {
+                bag.Add(piece);
+            }
+        }*/
     }
 }

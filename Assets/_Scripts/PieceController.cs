@@ -21,7 +21,10 @@ public class PieceController : MonoBehaviour
     private static Vector2[,] wallKickDataForI;
 
     [SerializeField]
+    private float originalFallingTime = 1f;
     private float fallingTime = 1f;
+    private float fallingTimeFast = 1f/12;
+
     private float timeToNextFalling;
     public SpawnManager _spawnManager;
     private bool canMove = true;
@@ -43,6 +46,8 @@ public class PieceController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        fallingTime = originalFallingTime;
+        fallingTimeFast = fallingTime/12;
         timeToNextFalling = 0f;
         _spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
         _scoreManager = GameObject.Find("ScoreManager").GetComponent<ScoreManager>();
@@ -110,8 +115,18 @@ public class PieceController : MonoBehaviour
                 }
             }
 
+            if(Input.GetKey(KeyCode.DownArrow))
+            {
+                fallingTime = fallingTimeFast;
+            }
+
+            if(Input.GetKeyUp(KeyCode.DownArrow))
+            {
+                fallingTime = originalFallingTime;
+            }
+
             //Caída de la pieza
-            if (Input.GetKeyDown(KeyCode.DownArrow) || timeToNextFalling >= fallingTime)
+            if (timeToNextFalling >= fallingTime)
             {
                 this.gameObject.transform.position = new Vector3(gameObject.transform.position.x,
                                                                         gameObject.transform.position.y - 1,
