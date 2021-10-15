@@ -72,34 +72,41 @@ public class PieceController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.LeftControl) && !identity.Equals("O"))
             {
                 bool rotationResult = true;
+                Estate aux = nextState;
                 //Actualizamos el estado de rotación
-                nextState = nextState -90;
+                nextState = nextState - 90;
                 if(Mathf.Abs((float)nextState) == 180f)
                 {
                     nextState = Estate.D;
                 }
-
-                //Rotamos
-                this.transform.Rotate(new Vector3(0, 0, -90));
-
-
                 Debug.Log(actualEstate + "-> " + nextState);
-                //Aplicamos Wallkick
-                if(identity == "I")
+                //Rotamos
+                this.transform.Rotate(new Vector3(0, 0, 90));
+                if(IsValidPosition())
                 {
-                    rotationResult = TryWallKick(wallKickDataForI);
+                    UpdateGrid();
+                     actualEstate = nextState;
                 }else
                 {
-                    rotationResult = TryWallKick(wallKickDataForRest);
-                }
+                    //Aplicamos Wallkick
+                    if(identity == "I")
+                    {
+                        rotationResult = TryWallKick(wallKickDataForI);
+                    }else
+                    {
+                        rotationResult = TryWallKick(wallKickDataForRest);
+                    }
 
-                //Si no hay un wallkick satisfactorio, no rotamos
-                if(!rotationResult)
-                {
-                    this.transform.Rotate(new Vector3(0, 0, 90));
-                }else
-                {
-                    actualEstate = nextState;
+                    //Si no hay un wallkick satisfactorio, no rotamos
+                    if(!rotationResult)
+                    {
+                        this.transform.Rotate(new Vector3(0, 0, -90));
+                        nextState = aux;
+                    }else
+                    {
+                        actualEstate = nextState;
+                        UpdateGrid();
+                    }
                 }
             }
 
@@ -347,11 +354,11 @@ public class PieceController : MonoBehaviour
         for(int i=0; i<5; i++)
         {
             Vector2 movement = data[dataRow, i];
-            this.transform.Rotate(new Vector3(movement.x, movement.y, 0));
+            this.gameObject.transform.position += new Vector3(movement.x, movement.y, 0);
             if(!IsValidPosition())
             {
-                Debug.Log(movement.x + " " + movement.y);
-                this.transform.Rotate(new Vector3(-movement.x, -movement.y, 0));
+                //Debug.Log(movement.x + " " + movement.y);
+                this.gameObject.transform.position += new Vector3(-movement.x, -movement.y, 0);
             }else
             {
                 return true;
