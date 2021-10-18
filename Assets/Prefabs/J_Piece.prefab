@@ -210,7 +210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   identity: J
-  fallingTime: 1
+  originalFallingTime: 1
   _spawnManager: {fileID: 0}
   OnChange:
     m_PersistentCalls:

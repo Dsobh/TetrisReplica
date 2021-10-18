@@ -9,27 +9,29 @@ public class SpawnManager : MonoBehaviour
     [SerializeField]
     private Vector3[] piecesOffset;
     [SerializeField]
-    private ArrayList bag = new ArrayList();
+    private List<int> bag = new List<int>(7);
     [SerializeField]
     private Transform UIPosition;
-    private int nextPieceIndex;
-    private GameObject newPieceAux;
+    private int offsetIndex;
     private GameObject newPiece;
 
-    void Start() {
-        nextPieceIndex = Random.Range(0, 6);
-        SpawnPiece();
+    private GameObject nextPiece;
+
+    void Start()
+    {
+        Random.InitState((int)Time.deltaTime);
         FillBag();
+        nextPiece = GetOnePiece();
+        SpawnPiece();
     }
 
     /// <summary>
-    /// Hace Spawn de una pieza según el nextPieceIndex. Se llama desde PieceController.
+    /// Hace Spawn de una pieza según la nextPiece. Se llama desde PieceController.
     /// </summary>
     public void SpawnPiece()
     {
-        GameObject piece = pieces[nextPieceIndex];
-        nextPieceIndex = Random.Range(0, 6);
-        GameObject pieceInstance = Instantiate(piece, this.transform.position, piece.transform.rotation);
+
+        GameObject pieceInstance = Instantiate(nextPiece, this.transform.position, nextPiece.transform.rotation);
         pieceInstance.SetActive(true);
         Destroy(newPiece);
         SpawnUI();
@@ -40,31 +42,31 @@ public class SpawnManager : MonoBehaviour
     /// </summary>
     private void SpawnUI()
     {
-        GameObject newPieceAux = pieces[nextPieceIndex];
-        newPiece = Instantiate(newPieceAux, (UIPosition.position  + piecesOffset[nextPieceIndex]), newPieceAux.transform.rotation);
+        nextPiece = GetOnePiece();
+        newPiece = Instantiate(nextPiece, (UIPosition.position + piecesOffset[offsetIndex]), nextPiece.transform.rotation);
         newPiece.GetComponent<PieceController>().enabled = false;
         newPiece.SetActive(true);
     }
 
+    //Llenamos la bolsa
     private void FillBag()
     {
-        GameObject piece;
-        bool pieceExist = false;
-      /* while(bag.Count < 7)
+        for (int i = 0; i < 7; i++)
         {
-            piece = pieces[Random.Range(0,6)];
-            foreach (GameObject p in bag)
-            {
-                if(piece.name == p.name)
-                {
-                    pieceExist = true;
-                }
-            }
-            Debug.Log(piece.name);
-            if(pieceExist == false)
-            {
-                bag.Add(piece);
-            }
-        }*/
+            bag.Add(i);
+        }
+    }
+
+    private GameObject GetOnePiece()
+    {
+        if (bag.Count <= 0)
+        {
+            FillBag();
+        }
+        int index = Random.Range(0, bag.Count - 1);
+        offsetIndex = bag[index];
+        GameObject piece = pieces[offsetIndex];
+        bag.RemoveAt(index);
+        return piece;
     }
 }

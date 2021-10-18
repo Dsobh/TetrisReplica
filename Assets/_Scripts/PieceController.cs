@@ -43,6 +43,8 @@ public class PieceController : MonoBehaviour
     public static event _OnGameOverTrigger OnGameOverTrigger;
     public UnityEvent OnGameOver;
 
+    SoundsPlayer _soundPlayer;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -51,6 +53,7 @@ public class PieceController : MonoBehaviour
         timeToNextFalling = 0f;
         _spawnManager = GameObject.Find("SpawnManager").GetComponent<SpawnManager>();
         _scoreManager = GameObject.Find("ScoreManager").GetComponent<ScoreManager>();
+        _soundPlayer = GameObject.Find("Main Camera").GetComponent<SoundsPlayer>();
         wallKickDataForRest = WallKickData.returnRestData();
         wallKickDataForI = WallKickData.returnIData();
     }
@@ -138,6 +141,7 @@ public class PieceController : MonoBehaviour
                 else
                 {
                     CheckGameOver();
+                    _soundPlayer.PlayPieceSound();
                     this.gameObject.transform.position = new Vector3(gameObject.transform.position.x,
                                                                         gameObject.transform.position.y + 1,
                                                                         gameObject.transform.position.z);
@@ -237,6 +241,7 @@ public class PieceController : MonoBehaviour
             if (IsRowFull(y))
             {
                 DeleteRow(y);
+                _soundPlayer.PlayLineSound();
                 _scoreManager.IncreaseCombo();
                 DecreaseSuperiorRows(y + 1);
                 y--;
