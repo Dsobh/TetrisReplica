@@ -19,7 +19,6 @@ public class SpawnManager : MonoBehaviour
 
     void Start()
     {
-        Random.InitState((int)Time.deltaTime);
         FillBag();
         nextPiece = GetOnePiece();
         SpawnPiece();

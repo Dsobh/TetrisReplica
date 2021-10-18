@@ -5,8 +5,8 @@ using UnityEngine;
 
 enum Estate {
     O = 0,
-    R = 90,
-    L = -90,
+    R = -90,
+    L = 90,
     D = 180};
 
 public class PieceController : MonoBehaviour
@@ -89,7 +89,7 @@ public class PieceController : MonoBehaviour
                 }
                 Debug.Log(actualEstate + "-> " + nextState);
                 //Rotamos
-                this.transform.Rotate(new Vector3(0, 0, 90));
+                this.transform.Rotate(new Vector3(0, 0, -90));
                 if(IsValidPosition())
                 {
                     UpdateGrid();
@@ -108,7 +108,7 @@ public class PieceController : MonoBehaviour
                     //Si no hay un wallkick satisfactorio, no rotamos
                     if(!rotationResult)
                     {
-                        this.transform.Rotate(new Vector3(0, 0, -90));
+                        this.transform.Rotate(new Vector3(0, 0, +90));
                         nextState = aux;
                     }else
                     {
